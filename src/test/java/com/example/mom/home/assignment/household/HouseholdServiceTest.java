@@ -118,15 +118,44 @@ public class HouseholdServiceTest {
     @Test
     public void whenGetAllHouseholdsShouldReturnEveryHouseholdWithFamilyMembers() {
         Household mockHousehold1 = new Household(1, HouseholdEnum.HousingType.HDB, new ArrayList<FamilyMember>(List.of(getValidFamilyMember("member1"))));
-        Household mockHousehold2 = new Household(2, HouseholdEnum.HousingType.HDB, new ArrayList<FamilyMember>(List.of(getValidFamilyMember("member2"))));
+        Household mockHousehold2 = new Household(2, HouseholdEnum.HousingType.HDB, new ArrayList<FamilyMember>(List.of(getValidFamilyMember("member2"),getValidFamilyMember("member3"))));
         List<Household> mockHouseholds = new ArrayList<>(List.of(mockHousehold1,mockHousehold2));
         when(householdRepository.findAll()).thenReturn(mockHouseholds);
-        List<Household> actualHouseholds = householdService.getAllHouseholds();
-        assertEquals(mockHouseholds.size(), actualHouseholds.size());
-        assertEquals(mockHouseholds.get(0).getFamilyMemberList().size(), actualHouseholds.get(0).getFamilyMemberList().size());
-        assertEquals(mockHouseholds.get(1).getFamilyMemberList().size(), actualHouseholds.get(1).getFamilyMemberList().size());
-        assertEquals(mockHouseholds.get(0).getFamilyMemberList().get(0).getName(), actualHouseholds.get(0).getFamilyMemberList().get(0).getName());
+        List<Household> response = householdService.getAllHouseholds();
+        assertEquals(mockHouseholds.size(), response.size());
+        assertEquals(mockHouseholds.get(0).getFamilyMemberList().size(), response.get(0).getFamilyMemberList().size());
+        assertEquals(mockHouseholds.get(1).getFamilyMemberList().size(), response.get(1).getFamilyMemberList().size());
+        assertEquals(mockHouseholds.get(0).getFamilyMemberList().get(0).getName(), response.get(0).getFamilyMemberList().get(0).getName());
+    }
 
+    @Test
+    public void whenGetAllHouseholdsAndNoHouseholdFoundShouldReturnEmptyList() {
+        when(householdRepository.findAll()).thenReturn(new ArrayList<>());
+        List<Household> actualHouseholds = householdService.getAllHouseholds();
+        assertEquals(0, actualHouseholds.size());
+    }
+
+    //region Method: getHousehold
+    @Test
+    public void whenGetHouseholdShouldReturnHouseholdWithFamilyMembers() {
+        Long mockHouseholdId = 1L;
+        FamilyMember mockMember = getValidFamilyMember("mock member");
+        Household mockHousehold = new Household(mockHouseholdId, HouseholdEnum.HousingType.HDB, new ArrayList<FamilyMember>(List.of(mockMember)));
+        Optional<Household> mockResponse = Optional.of(mockHousehold);
+        when(householdRepository.findById(mockHouseholdId)).thenReturn(mockResponse);
+        Household response = householdService.getHousehold(mockHouseholdId);
+        assertEquals(mockHousehold, response);
+        assertEquals(mockHousehold.getFamilyMemberList().get(0).getName(), mockMember.getName());
+    }
+
+    @Test
+    public void whenGetHouseholdHaveNoResultShouldThrowResourceNotFoundException() {
+        Long mockHouseholdId = 1L;
+        Optional<Household> emptyResponse = Optional.empty();
+        when(householdRepository.findById(mockHouseholdId)).thenReturn(emptyResponse);
+        assertThrows(ResourceNotFoundException.class, () -> {
+            householdService.getHousehold(mockHouseholdId);
+        });
     }
     //endregion
 

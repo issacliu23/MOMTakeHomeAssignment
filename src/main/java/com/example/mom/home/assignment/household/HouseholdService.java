@@ -46,7 +46,7 @@ public class HouseholdService {
             validateConstraints(member);
             Optional<Household> householdOptional = householdRepository.findById(householdId);
             if (householdOptional.isPresent()) {
-                member.setHousehold(householdOptional.get());
+                householdOptional.get().addFamilyMember(member);
                 return familyMemberRepository.save(member);
             } else
                 throw new ResourceNotFoundException("Household not found");
@@ -57,6 +57,14 @@ public class HouseholdService {
 
     public List<Household> getAllHouseholds() {
         return householdRepository.findAll();
+    }
+
+    public Household getHousehold(Long householdId) {
+        Optional<Household> householdOptional = householdRepository.findById(householdId);
+        if(householdOptional.isPresent())
+            return householdOptional.get();
+        else
+            throw new ResourceNotFoundException("Household not found");
     }
 
     private void validateConstraints(Object obj) throws ConstraintViolationException {

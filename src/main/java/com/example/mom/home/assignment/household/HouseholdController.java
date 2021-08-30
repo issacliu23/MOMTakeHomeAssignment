@@ -46,6 +46,14 @@ public class HouseholdController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
     //GET getHousehold
+    @GetMapping("/{householdId}")
+    public ResponseEntity<HouseholdDTO> getHousehold(@PathVariable(value = "householdId") Long householdId) {
+        Household household = householdService.getHousehold(householdId);
+        if(household != null)
+            return new ResponseEntity<HouseholdDTO>(new HouseholdDTO(household), HttpStatus.OK);
+        else
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    }
     //GET getHouseholdsWithEligibleGrant
     //DELETE removeHousehold
     //DELETE removeFamilyMember

@@ -1,5 +1,6 @@
 package com.example.mom.home.assignment.household;
 
+import com.example.mom.home.assignment.customexception.ResourceNotFoundException;
 import com.example.mom.home.assignment.household.familymember.FamilyMember;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -137,7 +138,6 @@ public class HouseholdControllerTest {
     //endregion
 
     //region getAllHouseholds API Test
-    // whenGetAllHouseholdsShouldReturnHouseholdDTOObject
     @Test
     public void whenGetAllHouseholdsShouldReturnHouseholdDTOList() throws Exception {
         HouseholdEnum.HousingType house1type = HouseholdEnum.HousingType.HDB;
@@ -177,6 +177,46 @@ public class HouseholdControllerTest {
                 .andExpect(status().isInternalServerError());
     }
     //endregion
+    //region getHousehold API Test
+    @Test
+    public void whenGetHouseholdShouldReturnHouseholdWithFamilyMembers() throws Exception {
+        Long householdId = 1L;
+        Household mockHousehold = new Household(householdId, HouseholdEnum.HousingType.HDB,new ArrayList<FamilyMember>(List.of(getValidFamilyMember())));
+        when(householdService.getHousehold(householdId)).thenReturn(mockHousehold);
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/household/{householdId}",householdId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding("utf-8")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+        HouseholdDTO response = getMapper().readValue(result.getResponse().getContentAsString(), HouseholdDTO.class);
+        assertEquals(mockHousehold.getHousingType(), response.getHousingType());
+        assertEquals(mockHousehold.getFamilyMemberList().size(), response.getFamilyMemberList().size());
+        assertEquals(mockHousehold.getFamilyMemberList().get(0).getName(), response.getFamilyMemberList().get(0).getName());
+    }
+    @Test
+    public void whenGetHouseholdNotFoundShouldReturnNotFound() throws Exception {
+        Long householdId = 1L;
+        when(householdService.getHousehold(householdId)).thenThrow(ResourceNotFoundException.class);
+        mockMvc.perform(MockMvcRequestBuilders.get("/household/{householdId}",householdId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding("utf-8")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void whenGetHouseholdAndServiceReturnNullShouldReturnInternalServerError() throws Exception {
+        Long householdId = 1L;
+        when(householdService.getHousehold(householdId)).thenReturn(null);
+        mockMvc.perform(MockMvcRequestBuilders.get("/household/{householdId}",householdId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding("utf-8")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isInternalServerError());
+    }
+    //endregion
+
     private static String asJsonString(final Object obj) {
         try {
             return getMapper().writeValueAsString(obj);
