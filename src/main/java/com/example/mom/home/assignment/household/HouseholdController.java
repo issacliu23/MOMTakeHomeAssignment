@@ -4,13 +4,12 @@ import com.example.mom.home.assignment.household.familymember.FamilyMember;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.ConstraintViolationException;
 import javax.validation.Valid;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(path = "household")
@@ -21,7 +20,7 @@ public class HouseholdController {
     public HouseholdController(HouseholdService householdService) {
         this.householdService = householdService;
     }
-    //POST createHousehold
+
     @PostMapping
     public ResponseEntity<Household> createHouseHold(@Valid @RequestBody Household household) {
         try {
@@ -36,7 +35,16 @@ public class HouseholdController {
         }
     }
 
-    //GET getAllHouseholds
+    @GetMapping
+    public ResponseEntity<List<HouseholdDTO>> getAllHouseholds() {
+        List<Household> households = householdService.getAllHouseholds();
+        if(households != null) {
+            List<HouseholdDTO> householdsDTOs = households.stream().map(HouseholdDTO::new).collect(Collectors.toList());
+            return new ResponseEntity<List<HouseholdDTO>>(householdsDTOs, HttpStatus.OK);
+        }
+        else
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    }
     //GET getHousehold
     //GET getHouseholdsWithEligibleGrant
     //DELETE removeHousehold

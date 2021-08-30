@@ -114,6 +114,23 @@ public class HouseholdServiceTest {
 
     //endregion
 
+    //region Method: getAllHouseholds
+    @Test
+    public void whenGetAllHouseholdsShouldReturnEveryHouseholdWithFamilyMembers() {
+        Household mockHousehold1 = new Household(1, HouseholdEnum.HousingType.HDB, new ArrayList<FamilyMember>(List.of(getValidFamilyMember("member1"))));
+        Household mockHousehold2 = new Household(2, HouseholdEnum.HousingType.HDB, new ArrayList<FamilyMember>(List.of(getValidFamilyMember("member2"))));
+        List<Household> mockHouseholds = new ArrayList<>(List.of(mockHousehold1,mockHousehold2));
+        when(householdRepository.findAll()).thenReturn(mockHouseholds);
+        List<Household> actualHouseholds = householdService.getAllHouseholds();
+        assertEquals(mockHouseholds.size(), actualHouseholds.size());
+        assertEquals(mockHouseholds.get(0).getFamilyMemberList().size(), actualHouseholds.get(0).getFamilyMemberList().size());
+        assertEquals(mockHouseholds.get(1).getFamilyMemberList().size(), actualHouseholds.get(1).getFamilyMemberList().size());
+        assertEquals(mockHouseholds.get(0).getFamilyMemberList().get(0).getName(), actualHouseholds.get(0).getFamilyMemberList().get(0).getName());
+
+    }
+    //endregion
+
+
 
 
 
