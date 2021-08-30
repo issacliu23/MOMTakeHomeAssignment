@@ -1,10 +1,17 @@
-package com.example.mom.home.assignment.household;
+package com.example.mom.home.assignment.familymember;
+
+import com.example.mom.home.assignment.household.Household;
+import com.example.mom.home.assignment.household.HouseholdEnum;
+import com.example.mom.home.assignment.validator.ValidateSpouseAnnotation;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 @Entity
 @Table
+@ValidateSpouseAnnotation
 public class FamilyMember {
     @Id
     @SequenceGenerator(
@@ -16,24 +23,41 @@ public class FamilyMember {
             strategy = GenerationType.SEQUENCE,
             generator = "family_member_sequence"
     )
-    @Column(name = "family_id")
     private long id;
+
+    @NotNull
     private String name;
+    @NotNull
     private HouseholdEnum.Gender gender;
+    @NotNull
     private HouseholdEnum.MaritalStatus maritalStatus;
     private String spouse;
+    @NotNull
     private HouseholdEnum.OccupationType occupationType;
+    @NotNull
     private Integer annualIncome;
+    @NotNull
     private LocalDate dob;
 
-    @ManyToOne
-    @JoinColumn(name="household_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "household_id")
+    @JsonIgnoreProperties("familyMemberList")
     private Household household;
 
-    public FamilyMember() {
+    public FamilyMember() {}
+
+    public FamilyMember(String name, HouseholdEnum.Gender gender, HouseholdEnum.MaritalStatus maritalStatus, String spouse, HouseholdEnum.OccupationType occupationType, Integer annualIncome, LocalDate dob) {
+        this.name = name;
+        this.gender = gender;
+        this.maritalStatus = maritalStatus;
+        this.spouse = spouse;
+        this.occupationType = occupationType;
+        this.annualIncome = annualIncome;
+        this.dob = dob;
     }
 
-    public FamilyMember(String name, HouseholdEnum.Gender gender, HouseholdEnum.MaritalStatus maritalStatus, String spouse, HouseholdEnum.OccupationType occupationType, Integer annualIncome, LocalDate dob, Household household) {
+    public FamilyMember(long id, String name, HouseholdEnum.Gender gender, HouseholdEnum.MaritalStatus maritalStatus, String spouse, HouseholdEnum.OccupationType occupationType, Integer annualIncome, LocalDate dob, Household household) {
+        this.id = id;
         this.name = name;
         this.gender = gender;
         this.maritalStatus = maritalStatus;
@@ -44,16 +68,7 @@ public class FamilyMember {
         this.household = household;
     }
 
-    public FamilyMember(long id, String name, HouseholdEnum.Gender gender, HouseholdEnum.MaritalStatus maritalStatus, String spouse, HouseholdEnum.OccupationType occupationType, Integer annualIncome, LocalDate dob) {
-        this.id = id;
-        this.name = name;
-        this.gender = gender;
-        this.maritalStatus = maritalStatus;
-        this.spouse = spouse;
-        this.occupationType = occupationType;
-        this.annualIncome = annualIncome;
-        this.dob = dob;
-    }
+
 
     public long getId() {
         return id;

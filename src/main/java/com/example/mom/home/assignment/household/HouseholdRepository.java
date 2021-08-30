@@ -1,4 +1,8 @@
 package com.example.mom.home.assignment.household;
 
-public interface HouseholdRepository {
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface HouseholdRepository extends JpaRepository<Household, Long> {
 }

@@ -11,11 +11,11 @@ public class HouseholdEnum {
         HDB
     }
     public enum MaritalStatus {
+        Single,
         Married,
         Widowed,
         Separated,
         Divorced,
-        Single
     }
     public enum OccupationType {
         Unemployed,
