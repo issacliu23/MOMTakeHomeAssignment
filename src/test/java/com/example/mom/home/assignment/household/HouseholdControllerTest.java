@@ -1,10 +1,11 @@
 package com.example.mom.home.assignment.household;
 
+import com.example.mom.home.assignment.constant.GrantSchemeConstants;
 import com.example.mom.home.assignment.customexception.ResourceNotFoundException;
 import com.example.mom.home.assignment.household.familymember.FamilyMember;
+import com.example.mom.home.assignment.household.familymember.FamilyMemberEnum;
+import com.example.mom.home.assignment.specification.HouseholdCriteria;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -17,15 +18,19 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import javax.validation.ConstraintViolationException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
-import static com.example.mom.home.assignment.household.familymember.FamilyMemberMockData.*;
+import static com.example.mom.home.assignment.MockData.*;
+import static com.example.mom.home.assignment.shared.SharedMethods.*;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 @WebMvcTest(HouseholdController.class)
 public class HouseholdControllerTest {
     @Autowired
@@ -33,14 +38,12 @@ public class HouseholdControllerTest {
     @MockBean
     private HouseholdService householdService;
 
-    //region createHousehold API Test
+    //region createHousehold API
     @Test
     public void whenCreateHouseholdShouldReturnHouseholdWithId() throws Exception {
-        HouseholdEnum.HousingType housingType = HouseholdEnum.HousingType.HDB;
-        List<FamilyMember> familyMemberList = new ArrayList<FamilyMember>(List.of(getValidFamilyMember()));
-        Household request = new Household(housingType, familyMemberList);
+        Household request = getMockHousehold(null);
         Long id = 1L;
-        Household response = new Household(id, housingType, familyMemberList);
+        Household response = getMockHousehold(id);
         when(householdService.createHousehold(any())).thenReturn(response);
         mockMvc.perform(MockMvcRequestBuilders.post("/household")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -53,10 +56,7 @@ public class HouseholdControllerTest {
 
     @Test
     public void whenCreateHouseholdAndServiceReturnNullShouldReturnInternalServerError() throws Exception {
-        HouseholdEnum.HousingType housingType = HouseholdEnum.HousingType.HDB;
-        List<FamilyMember> familyMemberList = new ArrayList<FamilyMember>(List.of(getValidFamilyMember()));
-        Household request = new Household(housingType, familyMemberList);
-        Long id = 1L;
+        Household request = getMockHousehold(null);
         when(householdService.createHousehold(any())).thenReturn(null);
         mockMvc.perform(MockMvcRequestBuilders.post("/household")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -78,7 +78,7 @@ public class HouseholdControllerTest {
 
     @Test
     public void whenCreateHouseholdWithNoFamilyMembersShouldReturnBadRequest() throws Exception {
-        Household request = new Household(HouseholdEnum.HousingType.HDB, new ArrayList<FamilyMember>());
+        Household request = getEmptyHousehold(null);
         mockMvc.perform(MockMvcRequestBuilders.post("/household")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJsonString(request))
@@ -100,7 +100,11 @@ public class HouseholdControllerTest {
 
     @Test
     public void whenCreateHouseholdWithSpouseAndWrongMaritalStatusShouldReturnBadRequest() throws Exception {
-        Household request = new Household(HouseholdEnum.HousingType.HDB, new ArrayList<FamilyMember>(List.of(getWrongMaritalStatusWithSpouseFamilyMember())));
+        FamilyMember mockMember = getMockFamilyMember();
+        mockMember.setSpouse("spouse");
+        mockMember.setMaritalStatus(FamilyMemberEnum.MaritalStatus.Single);
+        Household request = getMockHousehold(null);
+        request.addFamilyMember(mockMember);
         mockMvc.perform(MockMvcRequestBuilders.post("/household")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJsonString(request))
@@ -111,7 +115,11 @@ public class HouseholdControllerTest {
 
     @Test
     public void whenCreateHouseholdWithoutSpouseAndWrongMaritalStatusShouldReturnBadRequest() throws Exception {
-        Household request = new Household(HouseholdEnum.HousingType.HDB, new ArrayList<FamilyMember>(List.of(getWrongMaritalStatusWithoutSpouseFamilyMember())));
+        FamilyMember mockMember = getMockFamilyMember();
+        mockMember.setSpouse(null);
+        mockMember.setMaritalStatus(FamilyMemberEnum.MaritalStatus.Married);
+        Household request = getMockHousehold(null);
+        request.addFamilyMember(mockMember);
         mockMvc.perform(MockMvcRequestBuilders.post("/household")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJsonString(request))
@@ -122,10 +130,7 @@ public class HouseholdControllerTest {
 
     @Test
     public void whenCreateHouseholdAndServiceThrowConstraintViolationExceptionShouldReturnBadRequest() throws Exception {
-        HouseholdEnum.HousingType housingType = HouseholdEnum.HousingType.HDB;
-        List<FamilyMember> familyMemberList = new ArrayList<FamilyMember>(List.of(getValidFamilyMember()));
-        Household request = new Household(housingType, familyMemberList);
-        Long id = 1L;
+        Household request = getMockHousehold(null);
         when(householdService.createHousehold(any())).thenThrow(ConstraintViolationException.class);
         mockMvc.perform(MockMvcRequestBuilders.post("/household")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -136,21 +141,31 @@ public class HouseholdControllerTest {
     }
 
     //endregion
-
-    //region getAllHouseholds API Test
+    //region getAllHouseholds API
     @Test
     public void whenGetAllHouseholdsShouldReturnHouseholdDTOList() throws Exception {
         HouseholdEnum.HousingType house1type = HouseholdEnum.HousingType.HDB;
         HouseholdEnum.HousingType house2type = HouseholdEnum.HousingType.Condominium;
 
-        List<Household> mockHouseholds = new ArrayList<Household>();
-        FamilyMember member1 = getValidFamilyMember("House 1 member 1");
-        FamilyMember member2 = getValidFamilyMember("House 2 member 1");
-        FamilyMember member3 = getValidFamilyMember("House 2 member 2");
+        List<Household> mockHouseholdList = new ArrayList<Household>();
+        Household hdb = getEmptyHousehold(1L);
+        hdb.setHousingType(house1type);
+        FamilyMember h1member1 = getMockFamilyMember();
+        h1member1.setName("House 1 member 1");
+        hdb.addFamilyMember(h1member1);
 
-        mockHouseholds.add(new Household(house1type, new ArrayList<FamilyMember>(List.of(member1))));
-        mockHouseholds.add(new Household(house2type, new ArrayList<FamilyMember>(List.of(member2, member3))));
-        when(householdService.getAllHouseholds()).thenReturn(mockHouseholds);
+        Household condo = getEmptyHousehold(1L);
+        condo.setHousingType(HouseholdEnum.HousingType.Condominium);
+        FamilyMember h2member1 = getMockFamilyMember();
+        h2member1.setName("House 2 member 1");
+        FamilyMember h2member2 = getMockFamilyMember();
+        h2member2.setName("House 2 member 2");
+        condo.addFamilyMember(h2member1);
+        condo.addFamilyMember(h2member2);
+
+        mockHouseholdList.add(hdb);
+        mockHouseholdList.add(condo);
+        when(householdService.getAllHouseholds()).thenReturn(mockHouseholdList);
         MvcResult result = mockMvc.perform(get("/household"))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -177,11 +192,11 @@ public class HouseholdControllerTest {
                 .andExpect(status().isInternalServerError());
     }
     //endregion
-    //region getHousehold API Test
+    //region getHousehold API
     @Test
     public void whenGetHouseholdShouldReturnHouseholdWithFamilyMembers() throws Exception {
         Long householdId = 1L;
-        Household mockHousehold = new Household(householdId, HouseholdEnum.HousingType.HDB,new ArrayList<FamilyMember>(List.of(getValidFamilyMember())));
+        Household mockHousehold = getMockHousehold(householdId);
         when(householdService.getHousehold(householdId)).thenReturn(mockHousehold);
         MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/household/{householdId}",householdId)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -217,19 +232,126 @@ public class HouseholdControllerTest {
     }
     //endregion
 
-    private static String asJsonString(final Object obj) {
-        try {
-            return getMapper().writeValueAsString(obj);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    //region getGrantEligibleHouseholds API
+    @Test
+    public void whenGetGrantEligibleHouseholdsWithoutParamsShouldReturnResult() throws Exception {
+        GrantEligibleHouseholdDTO mockResponse = getMockGrantEligibleHouseholds();
+        when(householdService.getGrantEligibleHouseholds(any())).thenReturn(mockResponse);
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/household/getGrantEligibleHouseholds")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(null))
+                        .characterEncoding("utf-8")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        GrantEligibleHouseholdDTO actualResponse = getMapper().readValue(result.getResponse().getContentAsString(), new TypeReference<GrantEligibleHouseholdDTO>(){});
+        actualResponse.getGrantEligibleHouseholdMap().forEach((key, value) -> {
+            if(key.equals(HouseholdEnum.Grant.StudentEncouragementBonus)) {
+                for(Household h: value) {
+                    assertTrue(h.getHouseholdIncome() < GrantSchemeConstants.StudentEncouragementBonusConstants.incomeCeilingLimit);
+                    assertTrue(h.getFamilyMemberList().stream().anyMatch(m -> m.getAge() < GrantSchemeConstants.StudentEncouragementBonusConstants.ageCeilingLimit));
+                }
+            }
+            else if(key.equals(HouseholdEnum.Grant.FamilyTogethernessScheme)) {
+                for(Household h: value) {
+                    assertTrue(h.hasMarriedCouple());
+                    assertTrue(h.getFamilyMemberList().stream().anyMatch(m -> m.getAge() < GrantSchemeConstants.FamilyTogethernessSchemeConstants.ageCeilingLimit));
+                }
+            }
+            else if(key.equals(HouseholdEnum.Grant.ElderBonus)) {
+                for(Household h: value) {
+                    assertTrue(h.getFamilyMemberList().stream().anyMatch(m -> m.getAge() > GrantSchemeConstants.ElderBonusConstants.ageFloorLimit));
+                }
+            }
+            else if(key.equals(HouseholdEnum.Grant.BabySunshineGrant)) {
+                for(Household h: value) {
+                    assertTrue(h.getFamilyMemberList().stream().anyMatch(m -> m.getAge() < GrantSchemeConstants.BabySunshineGrantConstants.ageCeilingLimit));
+                }
+            }
+            else if(key.equals(HouseholdEnum.Grant.YOLOGSTGrant)) {
+                for(Household h: value) {
+                    assertTrue(h.getHouseholdIncome() < GrantSchemeConstants.YoloGstGrantConstants.incomeCeilingLimit);
+                }
+            }
+            else {
+                fail();
+            }
+        });
+    }
+    @Test
+    public void whenGetGrantEligibleHouseholdsWithParamsShouldReturnFilteredResult() throws Exception {
+        int criteriaIncome = GrantSchemeConstants.YoloGstGrantConstants.incomeCeilingLimit-1;
+        int criteriaSize = 1;
+        HouseholdEnum.HousingType criteriaHousingType = HouseholdEnum.HousingType.HDB;
+        HouseholdCriteria criteria = new HouseholdCriteria(criteriaSize,criteriaIncome,criteriaHousingType);
+        GrantEligibleHouseholdDTO mockResponse = getMockGrantEligibleHouseholds();
+        Predicate<Household> incomePredicate = h -> h.getHouseholdIncome() == criteriaIncome;
+        Predicate<Household> sizePredicate = h -> h.getFamilyMemberList().size() == criteriaSize;
+        Predicate<Household> housingTypePredicate = h -> h.getHousingType() == criteriaHousingType;
+        mockResponse.getGrantEligibleHouseholdMap().forEach((key,value)-> {
+            mockResponse.getGrantEligibleHouseholdMap().put(key,value.stream().filter(incomePredicate.and(sizePredicate.and(housingTypePredicate))).collect(Collectors.toList()));
+        });
+        when(householdService.getGrantEligibleHouseholds(any())).thenReturn(mockResponse);
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/household/getGrantEligibleHouseholds")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(null))
+                        .characterEncoding("utf-8")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+        GrantEligibleHouseholdDTO actualResponse = getMapper().readValue(result.getResponse().getContentAsString(), new TypeReference<GrantEligibleHouseholdDTO>(){});
+        actualResponse.getGrantEligibleHouseholdMap().forEach((key, value) -> {
+            if(key.equals(HouseholdEnum.Grant.StudentEncouragementBonus)) {
+                for(Household h: value) {
+                    assertEquals((int) h.getHouseholdIncome(), criteriaIncome);
+                    assertEquals(h.getFamilyMemberList().size(), criteriaSize);
+                    assertEquals(h.getHousingType(), criteriaHousingType);
+                    assertTrue(h.getHouseholdIncome() < GrantSchemeConstants.StudentEncouragementBonusConstants.incomeCeilingLimit);
+                    assertTrue(h.getFamilyMemberList().stream().anyMatch(m -> m.getAge() < GrantSchemeConstants.StudentEncouragementBonusConstants.ageCeilingLimit));
+                }
+            }
+            else if(key.equals(HouseholdEnum.Grant.FamilyTogethernessScheme)) {
+                for(Household h: value) {
+                    assertEquals((int) h.getHouseholdIncome(), criteriaIncome);
+                    assertEquals(h.getFamilyMemberList().size(), criteriaSize);
+                    assertEquals(h.getHousingType(), criteriaHousingType);
+
+                    assertTrue(h.hasMarriedCouple());
+                    assertTrue(h.getFamilyMemberList().stream().anyMatch(m -> m.getAge() < GrantSchemeConstants.FamilyTogethernessSchemeConstants.ageCeilingLimit));
+                }
+            }
+            else if(key.equals(HouseholdEnum.Grant.ElderBonus)) {
+                for(Household h: value) {
+                    assertEquals((int) h.getHouseholdIncome(), criteriaIncome);
+                    assertEquals(h.getFamilyMemberList().size(), criteriaSize);
+                    assertEquals(h.getHousingType(), criteriaHousingType);
+
+                    assertTrue(h.getFamilyMemberList().stream().anyMatch(m -> m.getAge() > GrantSchemeConstants.ElderBonusConstants.ageFloorLimit));
+                }
+            }
+            else if(key.equals(HouseholdEnum.Grant.BabySunshineGrant)) {
+                for(Household h: value) {
+                    assertEquals((int) h.getHouseholdIncome(), criteriaIncome);
+                    assertEquals(h.getFamilyMemberList().size(), criteriaSize);
+                    assertEquals(h.getHousingType(), criteriaHousingType);
+                    assertTrue(h.getFamilyMemberList().stream().anyMatch(m -> m.getAge() < GrantSchemeConstants.BabySunshineGrantConstants.ageCeilingLimit));
+                }
+            }
+            else if(key.equals(HouseholdEnum.Grant.YOLOGSTGrant)) {
+                for(Household h: value) {
+                    assertEquals((int) h.getHouseholdIncome(), criteriaIncome);
+                    assertEquals(h.getFamilyMemberList().size(), criteriaSize);
+                    assertEquals(h.getHousingType(), criteriaHousingType);
+                    assertTrue(h.getHouseholdIncome() < GrantSchemeConstants.YoloGstGrantConstants.incomeCeilingLimit);
+                }
+            }
+            else {
+                fail();
+            }
+        });
     }
 
-    private static ObjectMapper getMapper() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        return mapper;
-    }
 
 
 }

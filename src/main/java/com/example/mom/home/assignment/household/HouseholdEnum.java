@@ -10,7 +10,7 @@ public class HouseholdEnum {
         StudentEncouragementBonus,
         FamilyTogethernessScheme,
         ElderBonus,
-        BabySunshine,
-        YOLO_GST
+        BabySunshineGrant,
+        YOLOGSTGrant
     }
 }

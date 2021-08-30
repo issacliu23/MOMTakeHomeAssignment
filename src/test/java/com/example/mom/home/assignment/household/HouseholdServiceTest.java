@@ -1,22 +1,27 @@
 package com.example.mom.home.assignment.household;
 
+import com.example.mom.home.assignment.constant.GrantSchemeConstants;
 import com.example.mom.home.assignment.customexception.ResourceNotFoundException;
 import com.example.mom.home.assignment.household.familymember.FamilyMember;
+import com.example.mom.home.assignment.household.familymember.FamilyMemberEnum;
 import com.example.mom.home.assignment.household.familymember.FamilyMemberRepository;
+import com.example.mom.home.assignment.specification.HouseholdCriteria;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.jpa.domain.Specification;
 
 import javax.validation.ConstraintViolationException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.example.mom.home.assignment.household.familymember.FamilyMemberMockData.*;
+import static com.example.mom.home.assignment.MockData.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 public class HouseholdServiceTest {
@@ -26,13 +31,14 @@ public class HouseholdServiceTest {
     private HouseholdRepository householdRepository;
     @MockBean
     private FamilyMemberRepository familyMemberRepository;
-
     //region Method: createHousehold
     @Test
     public void whenCreateHouseholdSuccessThenReturnHouseholdObject() {
-        FamilyMember member = getValidFamilyMember();
-        Household request = new Household(HouseholdEnum.HousingType.HDB, new ArrayList<>(List.of(member)));
-        Household mockResponse = new Household(1, HouseholdEnum.HousingType.HDB, new ArrayList<>(List.of(member)));
+        FamilyMember member = getMockFamilyMember();
+        Household request = getEmptyHousehold(null);
+        request.addFamilyMember(member);
+        Household mockResponse = getEmptyHousehold(1L);
+        mockResponse.addFamilyMember(member);
         when(householdRepository.save(any())).thenReturn(mockResponse);
         Household response = householdService.createHousehold(request);
         assertEquals(mockResponse, response);
@@ -53,15 +59,25 @@ public class HouseholdServiceTest {
 
     @Test
     public void whenCreateHouseholdWithSpouseButWrongMaritalStatusThenThrowConstraintViolationException() {
+        FamilyMember mockMember = getMockFamilyMember();
+        mockMember.setSpouse("spouse");
+        mockMember.setMaritalStatus(FamilyMemberEnum.MaritalStatus.Single);
+        Household mockHousehold = getMockHousehold(null);
+        mockHousehold.addFamilyMember(mockMember);
         assertThrows(ConstraintViolationException.class, () -> {
-            householdService.createHousehold(new Household(HouseholdEnum.HousingType.HDB, new ArrayList<FamilyMember>(List.of(getWrongMaritalStatusWithSpouseFamilyMember()))));
+            householdService.createHousehold(mockHousehold);
         });
     }
 
     @Test
     public void whenCreateHouseholdWithoutSpouseButWrongMaritalStatusThenThrowConstraintViolationException() {
+        FamilyMember mockMember = getMockFamilyMember();
+        mockMember.setSpouse(null);
+        mockMember.setMaritalStatus(FamilyMemberEnum.MaritalStatus.Married);
+        Household mockHousehold = getMockHousehold(null);
+        mockHousehold.addFamilyMember(mockMember);
         assertThrows(ConstraintViolationException.class, () -> {
-            householdService.createHousehold(new Household(HouseholdEnum.HousingType.HDB, new ArrayList<FamilyMember>(List.of(getWrongMaritalStatusWithoutSpouseFamilyMember()))));
+            householdService.createHousehold(mockHousehold);
         });
     }
     //endregion
@@ -70,9 +86,9 @@ public class HouseholdServiceTest {
     @Test
     public void whenAddFamilyMemberShouldReturnObjectWithHousehold() {
         Long mockHouseholdId = 1L;
-        FamilyMember newMember = getValidFamilyMember("new member");
-        Household mockHousehold = new Household(mockHouseholdId, HouseholdEnum.HousingType.HDB, new ArrayList<FamilyMember>(List.of(getValidFamilyMember())));
-        newMember.setHousehold(mockHousehold);
+        FamilyMember newMember = getMockFamilyMember();
+        Household mockHousehold = getMockHousehold(mockHouseholdId);
+        mockHousehold.addFamilyMember(newMember);
         Optional<Household> mockResponse = Optional.of(mockHousehold);
         when(householdRepository.findById(any())).thenReturn(mockResponse);
         when(familyMemberRepository.save(newMember)).thenReturn(newMember);
@@ -84,7 +100,8 @@ public class HouseholdServiceTest {
     @Test
     public void whenAddFamilyMemberWithNoHouseholdFoundShouldThrowResourceNotFoundException() {
         Long mockHouseholdId = 1L;
-        FamilyMember newMember = getValidFamilyMember("new member");
+        FamilyMember newMember = getMockFamilyMember();
+        newMember.setName("new member");
         Optional<Household> mockResponse = Optional.empty();
         when(householdRepository.findById(any())).thenReturn(mockResponse);
         when(familyMemberRepository.save(newMember)).thenReturn(newMember);
@@ -95,14 +112,20 @@ public class HouseholdServiceTest {
 
     @Test
     public void whenAddFamilyMemberWithoutSpouseButWrongMaritalStatusShouldThrowConstraintViolationException() {
+        FamilyMember mockMember = getMockFamilyMember();
+        mockMember.setSpouse(null);
+        mockMember.setMaritalStatus(FamilyMemberEnum.MaritalStatus.Married);
         assertThrows(ConstraintViolationException.class, () -> {
-            householdService.addFamilyMember(1L, getWrongMaritalStatusWithoutSpouseFamilyMember());
+            householdService.addFamilyMember(1L, mockMember);
         });
     }
     @Test
     public void whenAddFamilyMemberWithSpouseButWrongMaritalStatusShouldThrowConstraintViolationException() {
+        FamilyMember mockMember = getMockFamilyMember();
+        mockMember.setSpouse("spouse");
+        mockMember.setMaritalStatus(FamilyMemberEnum.MaritalStatus.Single);
         assertThrows(ConstraintViolationException.class, () -> {
-            householdService.addFamilyMember(1L, getWrongMaritalStatusWithSpouseFamilyMember());
+            householdService.addFamilyMember(1L, mockMember);
         });
     }
 
@@ -117,8 +140,20 @@ public class HouseholdServiceTest {
     //region Method: getAllHouseholds
     @Test
     public void whenGetAllHouseholdsShouldReturnEveryHouseholdWithFamilyMembers() {
-        Household mockHousehold1 = new Household(1, HouseholdEnum.HousingType.HDB, new ArrayList<FamilyMember>(List.of(getValidFamilyMember("member1"))));
-        Household mockHousehold2 = new Household(2, HouseholdEnum.HousingType.HDB, new ArrayList<FamilyMember>(List.of(getValidFamilyMember("member2"),getValidFamilyMember("member3"))));
+        Household mockHousehold1 = getEmptyHousehold(1L);
+        FamilyMember h1member1 = getMockFamilyMember();
+        h1member1.setName("house 1 member 1");
+        mockHousehold1.addFamilyMember(h1member1);
+
+        Household mockHousehold2 = getEmptyHousehold(2L);
+        FamilyMember h2member1 = getMockFamilyMember();
+        h2member1.setName("house 1 member 2");
+        FamilyMember h2member2 = getMockFamilyMember();
+        h2member2.setName("house 2 member 2");
+        mockHousehold2.addFamilyMember(h2member1);
+        mockHousehold2.addFamilyMember(h2member2);
+
+
         List<Household> mockHouseholds = new ArrayList<>(List.of(mockHousehold1,mockHousehold2));
         when(householdRepository.findAll()).thenReturn(mockHouseholds);
         List<Household> response = householdService.getAllHouseholds();
@@ -139,8 +174,10 @@ public class HouseholdServiceTest {
     @Test
     public void whenGetHouseholdShouldReturnHouseholdWithFamilyMembers() {
         Long mockHouseholdId = 1L;
-        FamilyMember mockMember = getValidFamilyMember("mock member");
-        Household mockHousehold = new Household(mockHouseholdId, HouseholdEnum.HousingType.HDB, new ArrayList<FamilyMember>(List.of(mockMember)));
+        FamilyMember mockMember = getMockFamilyMember();
+        Household mockHousehold = getEmptyHousehold(mockHouseholdId);
+        mockHousehold.addFamilyMember(mockMember);
+
         Optional<Household> mockResponse = Optional.of(mockHousehold);
         when(householdRepository.findById(mockHouseholdId)).thenReturn(mockResponse);
         Household response = householdService.getHousehold(mockHouseholdId);
@@ -158,6 +195,86 @@ public class HouseholdServiceTest {
         });
     }
     //endregion
+
+    //region Method: getGrantEligibleHouseholds
+    @Test
+    public void whenGetGrantEligibleHouseholdsWithoutCriteriaShouldReturnCorrectList() throws Exception {
+        when(householdRepository.findAll(any(Specification.class))).thenReturn(
+                List.of(getMockStudentEncouragementBonusHousehold(1L)),
+                List.of(getMockFamilyTogethernessSchemeHousehold(2L)),
+                List.of(getMockElderBonusHousehold(3L)),
+                List.of(getMockBabySunshineGrantHousehold(4L)),
+                List.of(getMockYOLOGSTGrantHousehold(5L)));
+        GrantEligibleHouseholdDTO response = householdService.getGrantEligibleHouseholds(null);
+        AtomicInteger noOfEligibleHouseholds = new AtomicInteger(0);
+        verify(householdRepository, times(5)).findAll(any(Specification.class));
+        if(response != null) {
+            response.getGrantEligibleHouseholdMap().forEach((key, value) -> {
+                if (key.equals(HouseholdEnum.Grant.StudentEncouragementBonus)) {
+                    for (Household h : value) {
+                        noOfEligibleHouseholds.getAndIncrement();
+                        assertTrue(h.getHouseholdIncome() < GrantSchemeConstants.StudentEncouragementBonusConstants.incomeCeilingLimit);
+                        assertTrue(h.getFamilyMemberList().stream().anyMatch(m -> m.getAge() < GrantSchemeConstants.StudentEncouragementBonusConstants.ageCeilingLimit));
+                    }
+                } else if (key.equals(HouseholdEnum.Grant.FamilyTogethernessScheme)) {
+                    for (Household h : value) {
+                        noOfEligibleHouseholds.getAndIncrement();
+                        assertTrue(h.hasMarriedCouple());
+                        assertTrue(h.getFamilyMemberList().stream().anyMatch(m -> m.getAge() < GrantSchemeConstants.FamilyTogethernessSchemeConstants.ageCeilingLimit));
+                    }
+                } else if (key.equals(HouseholdEnum.Grant.ElderBonus)) {
+                    for (Household h : value) {
+                        noOfEligibleHouseholds.getAndIncrement();
+                        assertTrue(h.getFamilyMemberList().stream().anyMatch(m -> m.getAge() > GrantSchemeConstants.ElderBonusConstants.ageFloorLimit));
+                    }
+                } else if (key.equals(HouseholdEnum.Grant.BabySunshineGrant)) {
+                    for (Household h : value) {
+                        noOfEligibleHouseholds.getAndIncrement();
+                        assertTrue(h.getFamilyMemberList().stream().anyMatch(m -> m.getAge() < GrantSchemeConstants.BabySunshineGrantConstants.ageCeilingLimit));
+                    }
+                } else if (key.equals(HouseholdEnum.Grant.YOLOGSTGrant)) {
+                    for (Household h : value) {
+                        noOfEligibleHouseholds.getAndIncrement();
+                        assertTrue(h.getHouseholdIncome() < GrantSchemeConstants.YoloGstGrantConstants.incomeCeilingLimit);
+                    }
+                } else
+                    fail();
+            });
+        }
+        else
+            fail();
+        assertNotEquals(noOfEligibleHouseholds.get(), 0);
+    }
+
+    @Test
+    public void whenGetGrantEligibleHouseholdsWithCriteriaShouldReturnCorrectList() throws Exception {
+        int criteriaIncome = GrantSchemeConstants.YoloGstGrantConstants.incomeCeilingLimit-1;
+        int criteriaSize = 1;
+        HouseholdEnum.HousingType criteriaHousingType = HouseholdEnum.HousingType.HDB;
+        HouseholdCriteria criteria = new HouseholdCriteria(criteriaSize,criteriaIncome,criteriaHousingType);
+
+        when(householdRepository.findAll(any(Specification.class))).thenReturn(List.of(getMockYOLOGSTGrantHousehold(1L)));
+        GrantEligibleHouseholdDTO response = householdService.getGrantEligibleHouseholds(criteria);
+        AtomicInteger noOfEligibleHouseholds = new AtomicInteger(0);
+        verify(householdRepository, times(5)).findAll(any(Specification.class));
+        if(response != null) {
+            response.getGrantEligibleHouseholdMap().forEach((key, value) -> {
+                if (key.equals(HouseholdEnum.Grant.YOLOGSTGrant)) {
+                    for (Household h : value) {
+                        noOfEligibleHouseholds.getAndIncrement();
+                        assertEquals((int) h.getHouseholdIncome(), criteriaIncome);
+                        assertEquals(h.getFamilyMemberList().size(), criteriaSize);
+                        assertEquals(h.getHousingType(), criteriaHousingType);
+                        assertTrue(h.getHouseholdIncome() < GrantSchemeConstants.YoloGstGrantConstants.incomeCeilingLimit);
+                    }
+                }
+            });
+        }
+        else
+            fail();
+        assertNotEquals(noOfEligibleHouseholds.get(), 0);
+
+    }
 
 
 

@@ -1,14 +1,15 @@
 package com.example.mom.home.assignment.household;
 
-import com.example.mom.home.assignment.household.familymember.FamilyMember;
+import com.example.mom.home.assignment.specification.HouseholdCriteria;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.ConstraintViolationException;
 import javax.validation.Valid;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -55,6 +56,13 @@ public class HouseholdController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
     //GET getHouseholdsWithEligibleGrant
+
+    @GetMapping("/getGrantEligibleHouseholds")
+    public GrantEligibleHouseholdDTO getGrantEligibleHouseholds(@Nullable @RequestBody HouseholdCriteria householdCriteria)
+    {
+        return householdService.getGrantEligibleHouseholds(householdCriteria);
+    }
+
     //DELETE removeHousehold
     //DELETE removeFamilyMember
 }

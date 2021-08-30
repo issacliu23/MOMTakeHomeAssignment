@@ -2,7 +2,9 @@ package com.example.mom.home.assignment.household;
 
 import com.example.mom.home.assignment.household.familymember.FamilyMember;
 import com.example.mom.home.assignment.household.familymember.FamilyMemberDTO;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import javax.persistence.Transient;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -10,6 +12,8 @@ import java.util.stream.Collectors;
 public class HouseholdDTO {
     private HouseholdEnum.HousingType housingType;
     private List<FamilyMemberDTO> familyMemberList = new ArrayList<>();
+    @JsonIgnore
+    private Integer householdIncome;
 
     public HouseholdDTO() {
     }
@@ -33,7 +37,17 @@ public class HouseholdDTO {
         return familyMemberList;
     }
 
-
+    public Integer getHouseholdIncome() {
+        if(this.getFamilyMemberList().size() != 0) {
+            int totalAnnualIncome = 0;
+            for(FamilyMemberDTO m: this.getFamilyMemberList()) {
+                totalAnnualIncome += m.getAnnualIncome();
+            }
+            return totalAnnualIncome;
+        }
+        else
+            return 0;
+    }
 
 
 

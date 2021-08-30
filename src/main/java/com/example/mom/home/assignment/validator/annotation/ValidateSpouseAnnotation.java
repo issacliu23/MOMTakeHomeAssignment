@@ -1,4 +1,4 @@
-package com.example.mom.home.assignment.validator;
+package com.example.mom.home.assignment.validator.annotation;
 
 import javax.validation.Constraint;
 import javax.validation.Payload;

@@ -1,12 +1,15 @@
 package com.example.mom.home.assignment.household.familymember;
 
 import com.example.mom.home.assignment.household.Household;
-import com.example.mom.home.assignment.validator.ValidateSpouseAnnotation;
+import com.example.mom.home.assignment.validator.annotation.ValidateSpouseAnnotation;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
+import java.time.Period;
 
 @Entity
 @Table
@@ -35,8 +38,12 @@ public class FamilyMember {
     private FamilyMemberEnum.OccupationType occupationType;
     @NotNull
     private Integer annualIncome;
+
     @NotNull
     private LocalDate dob;
+    @JsonIgnore
+    @Transient
+    private Integer age;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "household_id")
@@ -76,8 +83,8 @@ public class FamilyMember {
         this.occupationType = another.occupationType;
         this.annualIncome = another.annualIncome;
         this.dob = another.dob;
-        this.household = another.household;    }
-
+        this.household = another.household;
+    }
 
     public long getId() {
         return id;
@@ -149,6 +156,10 @@ public class FamilyMember {
 
     public void setHousehold(Household household) {
         this.household = household;
+    }
+
+    public Integer getAge() {
+        return Period.between(this.dob, LocalDate.now()).getYears();
     }
 
 }

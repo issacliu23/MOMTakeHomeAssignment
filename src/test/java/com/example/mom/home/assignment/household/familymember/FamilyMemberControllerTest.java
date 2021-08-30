@@ -12,9 +12,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import java.util.Optional;
-
-import static com.example.mom.home.assignment.household.familymember.FamilyMemberMockData.*;
+import static com.example.mom.home.assignment.MockData.getMockFamilyMember;
+import static com.example.mom.home.assignment.shared.SharedMethods.asJsonString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -29,7 +28,7 @@ public class FamilyMemberControllerTest {
     //region addFamilyMember API Test
     @Test
     public void whenAddFamilyMemberShouldReturnFamilyMemberWithId() throws Exception {
-        FamilyMember request = getValidFamilyMember();
+        FamilyMember request = getMockFamilyMember();
         FamilyMember response = new FamilyMember(request);
         Long id = 1L;
         response.setId(id);
@@ -55,20 +54,24 @@ public class FamilyMemberControllerTest {
 
     @Test
     public void whenAddFamilyMemberWithSpouseButWrongMaritalStatusShouldReturnBadRequest() throws Exception {
-        FamilyMember invalidMember = getWrongMaritalStatusWithSpouseFamilyMember();
+        FamilyMember mockMember = getMockFamilyMember();
+        mockMember.setSpouse("spouse");
+        mockMember.setMaritalStatus(FamilyMemberEnum.MaritalStatus.Single);
         mockMvc.perform(MockMvcRequestBuilders.post("/household/{householdId}/family-member", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(asJsonString(invalidMember))
+                        .content(asJsonString(mockMember))
                         .characterEncoding("utf-8")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
     }
     @Test
     public void whenAddFamilyMemberWithoutSpouseButWrongMaritalStatusShouldReturnBadRequest() throws Exception {
-        FamilyMember invalidMember = getWrongMaritalStatusWithoutSpouseFamilyMember();
+        FamilyMember mockMember = getMockFamilyMember();
+        mockMember.setSpouse(null);
+        mockMember.setMaritalStatus(FamilyMemberEnum.MaritalStatus.Married);
         mockMvc.perform(MockMvcRequestBuilders.post("/household/{householdId}/family-member", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(asJsonString(invalidMember))
+                        .content(asJsonString(mockMember))
                         .characterEncoding("utf-8")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
@@ -76,8 +79,7 @@ public class FamilyMemberControllerTest {
 
     @Test
     public void whenAddFamilyMemberAndServiceReturnHouseholdNotFoundShouldReturnNotFound() throws Exception {
-        FamilyMember request = getValidFamilyMember();
-        Optional<FamilyMember> response = Optional.empty();
+        FamilyMember request = getMockFamilyMember();
         when(householdService.addFamilyMember(any(),any())).thenThrow(ResourceNotFoundException.class);
         mockMvc.perform(MockMvcRequestBuilders.post("/household/{householdId}/family-member",1L)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -89,8 +91,7 @@ public class FamilyMemberControllerTest {
 
     @Test
     public void whenAddFamilyMemberAndServiceReturnNullShouldReturnInternalServerError() throws Exception {
-        FamilyMember request = getValidFamilyMember();
-        Optional<FamilyMember> response = Optional.empty();
+        FamilyMember request = getMockFamilyMember();
         when(householdService.addFamilyMember(any(),any())).thenReturn(null);
         mockMvc.perform(MockMvcRequestBuilders.post("/household/{householdId}/family-member",1L)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -99,15 +100,7 @@ public class FamilyMemberControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isInternalServerError());
     }
+    // TODO Check if no identical name is entered
+    // TODO ensure dob cannot be more than current date
     //endregion
-
-    private static String asJsonString(final Object obj) {
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.registerModule(new JavaTimeModule());
-            return mapper.writeValueAsString(obj);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 }

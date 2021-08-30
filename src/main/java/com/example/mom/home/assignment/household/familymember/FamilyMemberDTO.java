@@ -1,7 +1,11 @@
 package com.example.mom.home.assignment.household.familymember;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
+import java.time.Period;
 
 public class FamilyMemberDTO {
     private String name;
@@ -11,7 +15,8 @@ public class FamilyMemberDTO {
     private FamilyMemberEnum.OccupationType occupationType;
     private Integer annualIncome;
     private LocalDate dob;
-
+    @JsonIgnore
+    private Integer age;
     public FamilyMemberDTO() {
     }
 
@@ -56,4 +61,8 @@ public class FamilyMemberDTO {
     public LocalDate getDob() {
         return dob;
     }
+    public Integer getAge() {
+        return Period.between(this.dob, LocalDate.now()).getYears();
+    }
+
 }
