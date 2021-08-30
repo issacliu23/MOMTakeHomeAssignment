@@ -1,17 +1,19 @@
 package com.example.mom.home.assignment.household;
 
-import com.example.mom.home.assignment.familymember.FamilyMember;
+import com.example.mom.home.assignment.customexception.ResourceNotFoundException;
+import com.example.mom.home.assignment.household.familymember.FamilyMember;
+import com.example.mom.home.assignment.household.familymember.FamilyMemberRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import javax.validation.ConstraintViolationException;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
-import static com.example.mom.home.assignment.household.HouseholdPreparedData.*;
+import static com.example.mom.home.assignment.household.familymember.FamilyMemberMockData.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -22,8 +24,10 @@ public class HouseholdServiceTest {
     private HouseholdService householdService;
     @MockBean
     private HouseholdRepository householdRepository;
+    @MockBean
+    private FamilyMemberRepository familyMemberRepository;
 
-    //region Method: createHousehold Test
+    //region Method: createHousehold
     @Test
     public void whenCreateHouseholdSuccessThenReturnHouseholdObject() {
         FamilyMember member = getValidFamilyMember();
@@ -60,6 +64,54 @@ public class HouseholdServiceTest {
             householdService.createHousehold(new Household(HouseholdEnum.HousingType.HDB, new ArrayList<FamilyMember>(List.of(getWrongMaritalStatusWithoutSpouseFamilyMember()))));
         });
     }
+    //endregion
+
+    //region Method: addFamilyMember
+    @Test
+    public void whenAddFamilyMemberShouldReturnObjectWithHousehold() {
+        Long mockHouseholdId = 1L;
+        FamilyMember newMember = getValidFamilyMember("new member");
+        Household mockHousehold = new Household(mockHouseholdId, HouseholdEnum.HousingType.HDB, new ArrayList<FamilyMember>(List.of(getValidFamilyMember())));
+        newMember.setHousehold(mockHousehold);
+        Optional<Household> mockResponse = Optional.of(mockHousehold);
+        when(householdRepository.findById(any())).thenReturn(mockResponse);
+        when(familyMemberRepository.save(newMember)).thenReturn(newMember);
+        FamilyMember response = householdService.addFamilyMember(mockHouseholdId, newMember);
+        assertEquals(newMember, response);
+        assertEquals(mockHousehold, response.getHousehold());
+        assertEquals(mockHouseholdId, response.getHousehold().getId());
+    }
+    @Test
+    public void whenAddFamilyMemberWithNoHouseholdFoundShouldThrowResourceNotFoundException() {
+        Long mockHouseholdId = 1L;
+        FamilyMember newMember = getValidFamilyMember("new member");
+        Optional<Household> mockResponse = Optional.empty();
+        when(householdRepository.findById(any())).thenReturn(mockResponse);
+        when(familyMemberRepository.save(newMember)).thenReturn(newMember);
+        assertThrows(ResourceNotFoundException.class, () -> {
+            householdService.addFamilyMember(mockHouseholdId, newMember);
+        });
+    }
+
+    @Test
+    public void whenAddFamilyMemberWithoutSpouseButWrongMaritalStatusShouldThrowConstraintViolationException() {
+        assertThrows(ConstraintViolationException.class, () -> {
+            householdService.addFamilyMember(1L, getWrongMaritalStatusWithoutSpouseFamilyMember());
+        });
+    }
+    @Test
+    public void whenAddFamilyMemberWithSpouseButWrongMaritalStatusShouldThrowConstraintViolationException() {
+        assertThrows(ConstraintViolationException.class, () -> {
+            householdService.addFamilyMember(1L, getWrongMaritalStatusWithSpouseFamilyMember());
+        });
+    }
+
+    @Test
+    public void whenAddFamilyMemberIsNullShouldReturnNull() {
+        FamilyMember response = householdService.addFamilyMember(1L, null);
+        assertNull(response);
+    }
+
     //endregion
 
 

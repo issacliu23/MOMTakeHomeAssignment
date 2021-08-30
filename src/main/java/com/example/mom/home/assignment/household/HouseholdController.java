@@ -1,7 +1,6 @@
 package com.example.mom.home.assignment.household;
 
-import com.example.mom.home.assignment.familymember.FamilyMember;
-import com.sun.istack.NotNull;
+import com.example.mom.home.assignment.household.familymember.FamilyMember;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,12 +11,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.ConstraintViolationException;
 import javax.validation.Valid;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 
 @RestController
-@RequestMapping(path = "api/v1/household")
+@RequestMapping(path = "household")
 public class HouseholdController {
     private final HouseholdService householdService;
 
@@ -26,7 +22,7 @@ public class HouseholdController {
         this.householdService = householdService;
     }
     //POST createHousehold
-    @PostMapping("/create_household")
+    @PostMapping
     public ResponseEntity<Household> createHouseHold(@Valid @RequestBody Household household) {
         try {
             Household createdHousehold = householdService.createHousehold(household);
@@ -40,7 +36,6 @@ public class HouseholdController {
         }
     }
 
-    //POST addFamilyMember
     //GET getAllHouseholds
     //GET getHousehold
     //GET getHouseholdsWithEligibleGrant

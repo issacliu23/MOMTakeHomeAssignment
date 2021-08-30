@@ -1,7 +1,6 @@
-package com.example.mom.home.assignment.familymember;
+package com.example.mom.home.assignment.household.familymember;
 
 import com.example.mom.home.assignment.household.Household;
-import com.example.mom.home.assignment.household.HouseholdEnum;
 import com.example.mom.home.assignment.validator.ValidateSpouseAnnotation;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -28,12 +27,12 @@ public class FamilyMember {
     @NotNull
     private String name;
     @NotNull
-    private HouseholdEnum.Gender gender;
+    private FamilyMemberEnum.Gender gender;
     @NotNull
-    private HouseholdEnum.MaritalStatus maritalStatus;
+    private FamilyMemberEnum.MaritalStatus maritalStatus;
     private String spouse;
     @NotNull
-    private HouseholdEnum.OccupationType occupationType;
+    private FamilyMemberEnum.OccupationType occupationType;
     @NotNull
     private Integer annualIncome;
     @NotNull
@@ -46,7 +45,7 @@ public class FamilyMember {
 
     public FamilyMember() {}
 
-    public FamilyMember(String name, HouseholdEnum.Gender gender, HouseholdEnum.MaritalStatus maritalStatus, String spouse, HouseholdEnum.OccupationType occupationType, Integer annualIncome, LocalDate dob) {
+    public FamilyMember(String name, FamilyMemberEnum.Gender gender, FamilyMemberEnum.MaritalStatus maritalStatus, String spouse, FamilyMemberEnum.OccupationType occupationType, Integer annualIncome, LocalDate dob) {
         this.name = name;
         this.gender = gender;
         this.maritalStatus = maritalStatus;
@@ -56,7 +55,7 @@ public class FamilyMember {
         this.dob = dob;
     }
 
-    public FamilyMember(long id, String name, HouseholdEnum.Gender gender, HouseholdEnum.MaritalStatus maritalStatus, String spouse, HouseholdEnum.OccupationType occupationType, Integer annualIncome, LocalDate dob, Household household) {
+    public FamilyMember(long id, String name, FamilyMemberEnum.Gender gender, FamilyMemberEnum.MaritalStatus maritalStatus, String spouse, FamilyMemberEnum.OccupationType occupationType, Integer annualIncome, LocalDate dob, Household household) {
         this.id = id;
         this.name = name;
         this.gender = gender;
@@ -68,6 +67,16 @@ public class FamilyMember {
         this.household = household;
     }
 
+    public FamilyMember(FamilyMember another) {
+        this.id = another.id;
+        this.name = another.name;
+        this.gender = another.gender;
+        this.maritalStatus = another.maritalStatus;
+        this.spouse = another.spouse;
+        this.occupationType = another.occupationType;
+        this.annualIncome = another.annualIncome;
+        this.dob = another.dob;
+        this.household = another.household;    }
 
 
     public long getId() {
@@ -86,19 +95,19 @@ public class FamilyMember {
         this.name = name;
     }
 
-    public HouseholdEnum.Gender getGender() {
+    public FamilyMemberEnum.Gender getGender() {
         return gender;
     }
 
-    public void setGender(HouseholdEnum.Gender gender) {
+    public void setGender(FamilyMemberEnum.Gender gender) {
         this.gender = gender;
     }
 
-    public HouseholdEnum.MaritalStatus getMaritalStatus() {
+    public FamilyMemberEnum.MaritalStatus getMaritalStatus() {
         return maritalStatus;
     }
 
-    public void setMaritalStatus(HouseholdEnum.MaritalStatus maritalStatus) {
+    public void setMaritalStatus(FamilyMemberEnum.MaritalStatus maritalStatus) {
         this.maritalStatus = maritalStatus;
     }
 
@@ -110,11 +119,11 @@ public class FamilyMember {
         this.spouse = spouse;
     }
 
-    public HouseholdEnum.OccupationType getOccupationType() {
+    public FamilyMemberEnum.OccupationType getOccupationType() {
         return occupationType;
     }
 
-    public void setOccupationType(HouseholdEnum.OccupationType occupationType) {
+    public void setOccupationType(FamilyMemberEnum.OccupationType occupationType) {
         this.occupationType = occupationType;
     }
 

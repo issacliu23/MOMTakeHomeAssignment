@@ -1,7 +1,7 @@
 package com.example.mom.home.assignment.validator;
 
-import com.example.mom.home.assignment.familymember.FamilyMember;
-import com.example.mom.home.assignment.household.HouseholdEnum;
+import com.example.mom.home.assignment.household.familymember.FamilyMember;
+import com.example.mom.home.assignment.household.familymember.FamilyMemberEnum;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
@@ -14,7 +14,7 @@ public class SpouseValidator implements ConstraintValidator<ValidateSpouseAnnota
 
     @Override
     public boolean isValid(FamilyMember familyMember, ConstraintValidatorContext constraintValidatorContext) {
-        if(familyMember.getMaritalStatus() == HouseholdEnum.MaritalStatus.Single || familyMember.getMaritalStatus() == HouseholdEnum.MaritalStatus.Divorced)
+        if(familyMember.getMaritalStatus() == FamilyMemberEnum.MaritalStatus.Single || familyMember.getMaritalStatus() == FamilyMemberEnum.MaritalStatus.Divorced)
             return familyMember.getSpouse() == null || familyMember.getSpouse().isEmpty();
         else
             return familyMember.getSpouse() != null && !familyMember.getSpouse().isEmpty();

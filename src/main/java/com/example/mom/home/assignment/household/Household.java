@@ -1,10 +1,11 @@
 package com.example.mom.home.assignment.household;
-import com.example.mom.home.assignment.familymember.FamilyMember;
+import com.example.mom.home.assignment.household.familymember.FamilyMember;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.persistence.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,6 +23,8 @@ public class Household {
             generator = "household_sequence"
     )
     private long id;
+
+    @NotNull
     private HouseholdEnum.HousingType housingType;
 
     @NotEmpty(message="There must be at least 1 family member in the household")

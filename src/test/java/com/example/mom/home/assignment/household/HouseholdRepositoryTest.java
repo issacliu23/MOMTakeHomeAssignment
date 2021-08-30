@@ -1,6 +1,6 @@
 package com.example.mom.home.assignment.household;
 
-import com.example.mom.home.assignment.familymember.FamilyMember;
+import com.example.mom.home.assignment.household.familymember.FamilyMember;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static com.example.mom.home.assignment.household.HouseholdPreparedData.*;
+import static com.example.mom.home.assignment.household.familymember.FamilyMemberMockData.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -29,6 +29,6 @@ public class HouseholdRepositoryTest {
             assertEquals(household, savedHousehold.get());
         else
             fail();
-
     }
+
 }
