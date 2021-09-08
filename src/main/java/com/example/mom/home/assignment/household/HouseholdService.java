@@ -13,9 +13,7 @@ import org.springframework.stereotype.Service;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.validation.Validator;
-import javax.validation.constraints.Null;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 
@@ -60,9 +58,8 @@ public class HouseholdService {
                         if(!spouseExist)
                             throw new ResourceNotFoundException("Spouse does not exist in this household");
                     }
-                    household.addFamilyMember(member);
-
                 }
+                household.addFamilyMember(member);
                 return familyMemberRepository.save(member);
             } else
                 throw new ResourceNotFoundException("Household not found");

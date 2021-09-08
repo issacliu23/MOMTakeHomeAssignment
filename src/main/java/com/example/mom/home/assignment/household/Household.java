@@ -7,10 +7,7 @@ import javax.persistence.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Entity
 @Table
@@ -25,7 +22,7 @@ public class Household {
             strategy = GenerationType.SEQUENCE,
             generator = "household_sequence"
     )
-    private long id;
+    private Long id;
 
     @NotNull
     private HouseholdEnum.HousingType housingType;
@@ -53,11 +50,11 @@ public class Household {
         this.familyMemberList = familyMemberList;
     }
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -106,5 +103,32 @@ public class Household {
             }
         }
         return false;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        boolean isEqual = false;
+        if (obj == this)
+            return true;
+        if (!(obj instanceof Household))
+            return false;
+
+        Household h = (Household) obj;
+
+        if(Objects.equals(this.getId(),h.getId()) &&
+                Objects.equals(this.getHousingType() ,h.getHousingType()) &&
+                Objects.equals(this.getHouseholdIncome(),h.getHouseholdIncome()) &&
+                this.getFamilyMemberList().size()==h.getFamilyMemberList().size()) {
+            if(this.getFamilyMemberList().size() > 0) {
+                for(int i=0; i<this.getFamilyMemberList().size(); i++) {
+                    isEqual = this.getFamilyMemberList().get(i).equals(h.getFamilyMemberList().get(i));
+                    if (!isEqual)
+                        return false;
+                }
+            }
+            else
+                return true;
+        }
+        return isEqual;
     }
 }

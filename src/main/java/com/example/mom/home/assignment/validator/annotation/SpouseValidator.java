@@ -2,8 +2,6 @@ package com.example.mom.home.assignment.validator.annotation;
 
 import com.example.mom.home.assignment.household.familymember.FamilyMember;
 import com.example.mom.home.assignment.household.familymember.FamilyMemberEnum;
-import com.example.mom.home.assignment.validator.annotation.ValidateSpouseAnnotation;
-
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 

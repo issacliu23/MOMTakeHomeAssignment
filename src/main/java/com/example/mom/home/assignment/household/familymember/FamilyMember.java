@@ -10,6 +10,7 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.Objects;
 
 @Entity
 @Table
@@ -25,7 +26,7 @@ public class FamilyMember {
             strategy = GenerationType.SEQUENCE,
             generator = "family_member_sequence"
     )
-    private long id;
+    private Long id;
 
     @NotNull
     private String name;
@@ -86,11 +87,11 @@ public class FamilyMember {
         this.household = another.household;
     }
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -162,4 +163,23 @@ public class FamilyMember {
         return Period.between(this.dob, LocalDate.now()).getYears();
     }
 
+    @Override
+    public boolean equals (Object obj) {
+        if (obj == this)
+            return true;
+        if (!(obj instanceof FamilyMember))
+            return false;
+
+        FamilyMember f = (FamilyMember) obj;
+
+        return Objects.equals(this.getId(), f.getId()) &&
+                Objects.equals(this.getOccupationType(),(f.getOccupationType())) &&
+                Objects.equals(this.getName(), f.getName()) &&
+                Objects.equals(this.getAge(), f.getAge()) &&
+                Objects.equals(this.getAnnualIncome(), f.getAnnualIncome()) &&
+                Objects.equals(this.getDob(), f.getDob()) &&
+                Objects.equals(this.getGender(), f.getGender()) &&
+                Objects.equals(this.getSpouse(), f.getSpouse()) &&
+                Objects.equals(this.getMaritalStatus(), f.getMaritalStatus());
+    }
 }

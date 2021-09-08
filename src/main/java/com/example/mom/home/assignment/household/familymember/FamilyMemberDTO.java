@@ -1,11 +1,14 @@
 package com.example.mom.home.assignment.household.familymember;
 
+import com.example.mom.home.assignment.household.Household;
+import com.example.mom.home.assignment.household.HouseholdDTO;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.Objects;
 
 public class FamilyMemberDTO {
     private String name;
@@ -63,6 +66,29 @@ public class FamilyMemberDTO {
     }
     public Integer getAge() {
         return Period.between(this.dob, LocalDate.now()).getYears();
+    }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this)
+            return true;
+        if (!(obj instanceof FamilyMemberDTO) && !(obj instanceof FamilyMember))
+            return false;
+
+        FamilyMemberDTO f = null;
+        if(obj instanceof FamilyMemberDTO)
+            f = (FamilyMemberDTO) obj;
+        if(obj instanceof FamilyMember)
+            f = new FamilyMemberDTO((FamilyMember) obj);
+        
+        return Objects.equals(this.getOccupationType(),(f.getOccupationType())) &&
+                Objects.equals(this.getName(), f.getName()) &&
+                Objects.equals(this.getAge(), f.getAge()) &&
+                Objects.equals(this.getAnnualIncome(), f.getAnnualIncome()) &&
+                Objects.equals(this.getDob(), f.getDob()) &&
+                Objects.equals(this.getGender(), f.getGender()) &&
+                Objects.equals(this.getSpouse(), f.getSpouse()) &&
+                Objects.equals(this.getMaritalStatus(), f.getMaritalStatus());
     }
 
 }
