@@ -135,6 +135,33 @@ public class HouseholdServiceTest {
         assertNull(response);
     }
 
+    @Test
+    public void whenAddMarriedFamilyMemberAndSpouseExistInHouseholdShouldThrowResourceNotFoundException() {
+        Long mockHouseholdId = 1L;
+        FamilyMember husband = getMockFamilyMember();
+        husband.setName("husband");
+        husband.setMaritalStatus(FamilyMemberEnum.MaritalStatus.Married);
+        husband.setSpouse("wife");
+        Household mockHousehold = getMockHousehold(mockHouseholdId);
+        mockHousehold.addFamilyMember(husband);
+        Optional<Household> mockResponse = Optional.of(mockHousehold);
+        when(householdRepository.findById(mockHouseholdId)).thenReturn(mockResponse);
+        FamilyMember wifeWithWrongHusband = getMockFamilyMember();
+        wifeWithWrongHusband.setName("wife");
+        wifeWithWrongHusband.setMaritalStatus(FamilyMemberEnum.MaritalStatus.Married);
+        wifeWithWrongHusband.setSpouse("wrongHusband");
+        assertThrows(ResourceNotFoundException.class, () -> {
+            householdService.addFamilyMember(1L, wifeWithWrongHusband);
+        });
+        FamilyMember wrongWifeWithHusband = getMockFamilyMember();
+        wrongWifeWithHusband.setName("wrongWife");
+        wrongWifeWithHusband.setMaritalStatus(FamilyMemberEnum.MaritalStatus.Married);
+        wrongWifeWithHusband.setSpouse("husband");
+        assertThrows(ResourceNotFoundException.class, () -> {
+            householdService.addFamilyMember(1L, wrongWifeWithHusband);
+        });
+    }
+
     //endregion
 
     //region Method: getAllHouseholds

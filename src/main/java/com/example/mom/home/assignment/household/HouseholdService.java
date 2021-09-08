@@ -2,6 +2,7 @@ package com.example.mom.home.assignment.household;
 
 import com.example.mom.home.assignment.customexception.ResourceNotFoundException;
 import com.example.mom.home.assignment.household.familymember.FamilyMember;
+import com.example.mom.home.assignment.household.familymember.FamilyMemberEnum;
 import com.example.mom.home.assignment.household.familymember.FamilyMemberRepository;
 import com.example.mom.home.assignment.specification.HouseholdCriteria;
 import com.example.mom.home.assignment.specification.HouseholdSpecification;
@@ -14,6 +15,7 @@ import javax.validation.ConstraintViolationException;
 import javax.validation.Validator;
 import javax.validation.constraints.Null;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 
@@ -50,7 +52,17 @@ public class HouseholdService {
             validateConstraints(member);
             Optional<Household> householdOptional = householdRepository.findById(householdId);
             if (householdOptional.isPresent()) {
-                householdOptional.get().addFamilyMember(member);
+                Household household = householdOptional.get();
+                if (member.getMaritalStatus().equals(FamilyMemberEnum.MaritalStatus.Married)) {
+                    boolean marriedPersonnelExist = household.getFamilyMemberList().stream().anyMatch(m -> m.getMaritalStatus().equals(FamilyMemberEnum.MaritalStatus.Married));
+                    if(marriedPersonnelExist) {
+                        boolean spouseExist = household.getFamilyMemberList().stream().anyMatch(m -> m.getMaritalStatus().equals(FamilyMemberEnum.MaritalStatus.Married) && m.getSpouse().equalsIgnoreCase(member.getName()) && m.getName().equalsIgnoreCase(member.getSpouse()));
+                        if(!spouseExist)
+                            throw new ResourceNotFoundException("Spouse does not exist in this household");
+                    }
+                    household.addFamilyMember(member);
+
+                }
                 return familyMemberRepository.save(member);
             } else
                 throw new ResourceNotFoundException("Household not found");

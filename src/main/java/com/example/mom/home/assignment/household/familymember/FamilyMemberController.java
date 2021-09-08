@@ -1,5 +1,6 @@
 package com.example.mom.home.assignment.household.familymember;
 
+import com.example.mom.home.assignment.household.Household;
 import com.example.mom.home.assignment.household.HouseholdService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
