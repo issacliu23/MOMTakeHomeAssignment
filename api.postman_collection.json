@@ -1,0 +1,150 @@
+{
+	"info": {
+		"_postman_id": "642162a9-ca7e-4b50-8cfb-ce56bb458082",
+		"name": "MOM",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "#1 CreateHousehold",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\t\"housingType\": \"HDB\",\r\n\t\"familyMemberList\": [\r\n\t\t{\r\n\t\t\t\"name\": \"husband\",\r\n\t\t\t\"gender\": \"Male\",\r\n\t\t\t\"maritalStatus\": \"Married\",\r\n\t\t\t\"spouse\": \"wife\",\r\n\t\t\t\"occupationType\": \"Employed\",\r\n\t\t\t\"annualIncome\": 99999,\r\n\t\t\t\"dob\": \"1990-03-02\"\r\n\t\t}\r\n\t]\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/household",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"household"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "#2 AddFamilyMember",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n        \"name\": \"test\",\r\n        \"gender\": \"Female\",\r\n        \"maritalStatus\": \"Single\",\r\n        \"occupationType\": \"Employed\",\r\n        \"annualIncome\": 1000,\r\n        \"dob\": \"2020-09-24\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/household/:householdId/family-member",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"household",
+						":householdId",
+						"family-member"
+					],
+					"variable": [
+						{
+							"key": "householdId",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "#3 GetAllHouseholds",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/household",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"household"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "#4 GetHousehold",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/household/:householdId",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"household",
+						":householdId"
+					],
+					"variable": [
+						{
+							"key": "householdId",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "#5 GetGrantEligibleHouseholds",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"housingType\": \"\", // Accepts HDB, Condominium, Landed\r\n    \"householdIncome\": 0,\r\n    \"householdSize\": 0\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/household/getGrantEligibleHouseholds",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"household",
+						"getGrantEligibleHouseholds"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
